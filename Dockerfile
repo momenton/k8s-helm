@@ -1,26 +1,21 @@
-FROM alpine
+FROM lachlanevenson/k8s-helm
 
-LABEL maintainer="Lachlan Evenson <lachlan.evenson@gmail.com>"
+LABEL maintainer="Gustavo Hoirisch <gustavo.hoirisch@momenton.com.au>"
 
 ARG VCS_REF
 ARG BUILD_DATE
 
 # Metadata
 LABEL org.label-schema.vcs-ref=$VCS_REF \
-      org.label-schema.vcs-url="https://github.com/lachie83/k8s-helm" \
+      org.label-schema.vcs-url="https://github.com/momenton/k8s-helm" \
       org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.docker.dockerfile="/Dockerfile"
 
-ENV HELM_LATEST_VERSION="v2.10.0"
+ENV HELM_HOME /helm
 
-RUN apk add --update ca-certificates \
- && apk add --update -t deps wget \
- && wget https://storage.googleapis.com/kubernetes-helm/helm-${HELM_LATEST_VERSION}-linux-amd64.tar.gz \
- && tar -xvf helm-${HELM_LATEST_VERSION}-linux-amd64.tar.gz \
- && mv linux-amd64/helm /usr/local/bin \
- && apk del --purge deps \
- && rm /var/cache/apk/* \
- && rm -f /helm-${HELM_LATEST_VERSION}-linux-amd64.tar.gz
+RUN apk add --no-cache git \
+    && mkdir -p $HELM_HOME/plugins \
+    && helm plugin install https://github.com/chartmuseum/helm-push
 
 ENTRYPOINT ["helm"]
 CMD ["help"]
